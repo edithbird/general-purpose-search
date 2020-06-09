@@ -1,0 +1,444 @@
+---
+title: "my title"
+
+author: 
+  - name: Christine Iyer
+    affiliation: ebd
+    email: youremail(at)gmail.com
+    footnote: Corresponding author
+    
+  - name: First Coauthor 
+    affiliation: shortcode
+
+address: 
+  - code: ebd
+    address: institution, address, postcode and country 
+  - code: shortcode
+    address: Full address of First Coauthor
+
+documentclass: elsarticle
+
+output: 
+  pdf_document:
+    template: elsarticle.latex
+    keep_tex: yes
+    fig_caption: yes
+    toc: false
+    
+bibliography: references.bib
+csl: ecology.csl
+
+abstract: | 
+          Write the abstract of the paper here
+          
+---
+
+<!--
+%\VignetteEngine{knitr::rmarkdown}
+%\VignetteIndexEntry{Example Manuscript}
+-->
+
+
+```{r knitr_setup, echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+
+library(rmarkdown)
+library(knitr)
+library(dplyr)
+library(salesforcer)
+library(knitr)
+library(RForcecom)
+library(tidyr)
+library(tinytex)
+
+### Chunk options ###
+
+# Modify at your will #
+
+
+## Text results
+opts_chunk$set(echo = TRUE, warning=TRUE, message=TRUE)
+
+## Code decoration
+opts_chunk$set(tidy=TRUE, comment = NA, highlight = TRUE)
+
+## Cache
+opts_chunk$set(cache = 2, cache.path = "output/cache/")
+opts_chunk$set(cache.extra = rand_seed)
+
+## Plots
+opts_chunk$set(fig.path = "output/figures/")
+opts_chunk$set(dpi = 300, fig.align = "default")   # may want 'center' sometimes
+
+# Figure format
+opts_chunk$set(dev='png')  # e.g. choose among 'pdf', 'png', 'svg'...
+# may include specific dev.args as a list... see knitr help
+
+
+```
+
+
+```{r citations_setup, echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+
+library(knitcitations)
+cleanbib()   
+cite_options(citation_format = "pandoc")
+
+if (file.exists("refs2import.bib")) 
+  refs <- read.bibtex("refs2import.bib", check=FALSE)
+
+```
+
+
+
+
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+username <- "christine.iyer@maine.edu"
+password <- "1Edithandoliver"
+securityToken <- "iFhpXgaXnuP3L5PQr69Zw2yOy"
+instanceURL <- "https://login.salesforce.com/"
+apiVersion <- "44.0"
+
+#auth <- sf_auth(username = username, password = password, security_token = securityToken,
+  #login_url = getOption("https://login.salesforce.com/"))
+
+
+
+session <- sf_auth(username, password, securityToken, instanceURL, apiVersion)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE }
+#sf_auth()
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+username <- "christine.iyer@maine.edu"
+password <- "1EdithandoliveriFhpXgaXnuP3L5PQr69Zw2yOy"
+#securityToken <- ""
+instanceURL <- "https://na24.salesforce.com/"
+apiVersion <- "44.0"
+
+
+
+
+
+session <- rforcecom.login(username, password, instanceURL,apiVersion  ) 
+```
+
+# November 2019 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+my_soql <- sprintf("SELECT Id,
+                           CreatedDate,
+                           Email, 
+                           FirstName, 
+                           LastName,
+                           TargetX_SRMb__Status__c, TargetX_SRMb__Student_Type__c,
+                           TargetX_SRMb__Anticipated_Start_Term__c,
+                           TargetX_SRMb__Anticipated_Start_Term_Year__c, 
+                           App_Application_Date__c,  
+                           TargetX_SRMb__Gender__c,  
+                           TargetX_SRMb__Last_Data_Input_Source__c,                                                                Initial_Source_Date__c, 
+                           Initial_Referral_Source__c, 
+                           Recruiting_Category__c,
+                           Ref__c, 
+                           Primary_State_Code__c
+                           
+                    FROM Contact 
+                    WHERE DAY_ONLY(CreatedDate) > 2019-12-01 AND DAY_ONLY(CreatedDate) < 2019-12-06 AND TargetX_SRMb__Status__c != 'Lead' 
+                    AND Recruiting_Category__c != ' '")
+
+queried_records <- sf_query(my_soql)
+```
+
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+LeadsUploaded <- read.csv("file:///C:/Users/christine.iyer/Desktop/Fall19Leads/Fall2019LeadsafterUploadAndDeDuped.csv", header = T, stringsAsFactors = F)
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+trythis <- merge(LeadsUploaded, queried_records, by = "Email" )
+trythis <- trythis %>% mutate(DateCollected = Sys.Date())
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#trythis
+# Don't forget to change the data!
+
+write.csv(trythis, "file:///C:/Users/christine.iyer/Box/Search/FY20_Search/FY20_November_Search/Conversions Fall 2020/Conversion_06-09-20_DeDuped.csv")
+```
+
+### Conversion Summary as of `r Sys.Date()`
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+trythisGrouped <- trythis %>% mutate(
+  Vendor = ifelse(grepl('^N', Recruiting.Category), 'NRCCUA', 'College Board'),
+   Class = ifelse(grepl('SR', Recruiting.Category), 'Senior', 'Junior') ,
+    Geo = ifelse(grepl('O', Recruiting.Category), 'Out-of_State', 'In-State'))
+
+
+trythisGroupedStatus <- trythisGrouped %>% group_by(Vendor, Class, Geo,
+                                                    TargetX_SRMb__Status__c) %>% summarise(n = n())
+
+
+
+trythisGroupedStatus <- trythisGroupedStatus %>% spread(TargetX_SRMb__Status__c, n) %>% mutate_at(4:5, ~replace(., is.na(.), 0))
+
+trythisGroupedStatus <- trythisGroupedStatus %>%
+  group_by(Vendor, Class, Geo) %>% 
+  summarise(
+  Inquiry = (sum(Inquiry) + sum(Applicant)), 
+  Applicant = sum(Applicant))
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+LeadsUploaded <- LeadsUploaded %>% 
+  mutate(
+  Vendor = ifelse(grepl('^N', Recruiting.Category), 'NRCCUA', 'College Board'),
+   Class = ifelse(grepl('SR', Recruiting.Category), 'Senior', 'Junior'),
+  Geo = ifelse(grepl('O', Recruiting.Category), 'Out-of_State', 'In-State')) %>% 
+  group_by(Geo,Class, Vendor
+           ) %>% summarise(Leads = n())
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+nwew <- left_join(LeadsUploaded, trythisGroupedStatus)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+nwew <- nwew %>% 
+  mutate(Inquiry_Yield = 
+          paste0(round(Inquiry/Leads * 100,2), "%"),
+         App_Yield = 
+          paste0(round(Applicant/Leads * 100,2), "%")) 
+         
+```
+
+
+**In-State Senior**
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+kable(nwew %>% filter(Geo == "In-State" & Class == "Senior"))
+```
+
+**Out-of-State Senior **
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+kable(nwew %>% filter(Geo == "Out-of_State" & Class == "Senior"))
+```
+
+**In-State Junior**
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+kable(nwew %>% filter(Geo == "In-State" & Class == "Junior") %>% 
+        select(Geo:Inquiry_Yield))
+```
+
+**Out-of_State Junior**
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+kable(nwew %>% filter(Geo == "Out-of_State" & Class == "Junior") %>% 
+        select(Geo:Inquiry_Yield))
+```
+
+
+# February
+
+2 purchases, 2 weeks apart. 
+
+__Senior__
+
+```{r}
+my_soql <- sprintf("SELECT Id,
+                           CreatedDate,
+                           Email, 
+                           FirstName, 
+                           LastName,
+                           TargetX_SRMb__Status__c, TargetX_SRMb__Student_Type__c,
+                           TargetX_SRMb__Anticipated_Start_Term__c,
+                           TargetX_SRMb__Anticipated_Start_Term_Year__c, 
+                           App_Application_Date__c,  
+                           TargetX_SRMb__Gender__c,  
+                           TargetX_SRMb__Last_Data_Input_Source__c,                                                                Initial_Source_Date__c, 
+                           Initial_Referral_Source__c, 
+                           Recruiting_Category__c,
+                           Ref__c, 
+                           Primary_State_Code__c, 
+                           Lead_Segment_College_Board__c, Lead_Segment_NRCCUA__c
+                           
+                           
+                    FROM Contact 
+                    WHERE DAY_ONLY(CreatedDate) > 2020-02-25 
+                    AND DAY_ONLY(CreatedDate) < 2020-03-03 
+                    AND TargetX_SRMb__Status__c != 'Lead' 
+                    AND (Lead_Segment_College_Board__c != ' ' 
+                    OR 	Lead_Segment_NRCCUA__c  != ' ') 
+                    AND TargetX_SRMb__Anticipated_Start_Year__c = 2020")
+
+queried_records <- sf_query(my_soql)
+queried_records <- queried_records %>%
+  mutate(Geo = ifelse(Primary_State_Code__c == "ME", "In-State", "Out-of-State"))
+
+LeadsUploaded <- read.csv("C:/Users/christine.iyer/Box/Search/FY20_Search/FY20_January_Search/FA20_Senior/FA20_Search_Jan2020_SR.csv", header = T, stringsAsFactors = F)
+Leads <- LeadsUploaded %>% 
+  mutate(Geo = ifelse(Primary.State.Province == "Maine", "In-State", "Out-of-State"), 
+         Vendor = ifelse(Lead.Segment.NRCCUA == "", "CB", 
+                         ifelse(Lead.Segment.College.Board == "", "NRCCUA", "Both"))) %>% 
+  group_by(Geo, Vendor) %>% 
+  summarise(Leads = n())
+trythis <- merge(LeadsUploaded, queried_records, by = "Email" )
+trythis <- trythis %>% mutate(DateCollected = Sys.Date(), 
+                              Vendor = ifelse(Lead.Segment.NRCCUA == "", "CB", 
+                         ifelse(Lead.Segment.College.Board == "", "NRCCUA", "Both")))
+
+# Don't forget to change the date!
+# Don't forget to change the date!
+# Don't forget to change the date!
+
+write.csv(trythis,"C:/Users/christine.iyer/Box/Search/FY20_Search/FY20_Combined_Search_Feb_March/Senior_Conversions/Conversions_6-09-20_DeDuped", row.names = F)
+```
+
+```{r}
+trythisGroup <- trythis %>% group_by(Geo, Vendor, TargetX_SRMb__Status__c) %>% summarise(n = n()) %>% spread(TargetX_SRMb__Status__c,n) 
+trythisGroup$Inquiry[is.na(trythisGroup$Inquiry)] <- 0
+trythisGroup <- trythisGroup %>% mutate(Inquiry = sum(Applicant) + sum(Inquiry)) %>% select(Geo, Vendor, Inquiry, Applicant)
+SRConversion <- left_join(Leads,trythisGroup %>% group_by(Geo, Vendor) %>% summarise(Inquiries = sum(Inquiry), Applicants = sum(Applicant)))
+SRConversion$Inquiries[is.na(SRConversion$Inquiries)] <- 0
+SRConversion$Applicants[is.na(SRConversion$Applicants)] <- 0
+kable(SRConversion %>% mutate(Inquiry_Yield = 
+          paste0(round(Inquiries/Leads * 100,2), "%"),
+         App_Yield = 
+          paste0(round(Applicants/Leads * 100,2), "%")))
+```
+
+__Juniors and Sophomores__
+
+
+```{r use this}
+my_soql <- sprintf("SELECT Id,
+                           CreatedDate,
+                           Email, 
+                           FirstName, 
+                           LastName,
+                           TargetX_SRMb__Status__c, TargetX_SRMb__Student_Type__c,
+                           TargetX_SRMb__Anticipated_Start_Term__c,
+                           TargetX_SRMb__Anticipated_Start_Term_Year__c, 
+                           App_Application_Date__c,  
+                           TargetX_SRMb__Gender__c,  
+                           TargetX_SRMb__Last_Data_Input_Source__c,                                                                Initial_Source_Date__c, 
+                           Initial_Referral_Source__c, 
+                           Recruiting_Category__c,
+                           Ref__c, 
+                           Primary_State_Code__c, 
+                           Lead_Segment_College_Board__c, Lead_Segment_NRCCUA__c
+                           
+                           
+                    FROM Contact 
+                    WHERE DAY_ONLY(CreatedDate) > 2020-02-25 
+                    AND DAY_ONLY(CreatedDate) < 2020-03-13 
+                    AND TargetX_SRMb__Status__c != 'Lead' 
+                    AND (Lead_Segment_College_Board__c != ' ' 
+                    OR 	Lead_Segment_NRCCUA__c  != ' ') 
+                    AND TargetX_SRMb__Anticipated_Start_Year__c != 2020")
+
+queried_records <- sf_query(my_soql)
+queried_records_JR <- queried_records %>%
+  mutate(Geo = ifelse(Primary_State_Code__c == "ME", "In-State", "Out-of-State"))
+
+LeadsUploaded_JR <- read.csv("C:/Users/christine.iyer/Box/Search/FY20_Search/FY20_Combined_Search_Feb_March/FY20_Feb_Search_Upload_DeDuped.csv", header = T, stringsAsFactors = F)
+
+trythis_JR <- merge(LeadsUploaded_JR, queried_records_JR, by = "Email" )
+
+
+
+
+trythis_JR <- trythis_JR %>% mutate(DateCollected = Sys.Date(), 
+                              Vendor = ifelse(Lead.Segment.NRCCUA == "", "CB", 
+                         ifelse(Lead.Segment.College.Board == "", "NRCCUA", "Both")))
+LeadsUploaded_JR <- LeadsUploaded_JR %>% 
+  mutate(Geo = ifelse(Primary.State.Province == "Maine", "In-State", "Out-of-State"), 
+         Vendor = ifelse(Lead.Segment.NRCCUA == "", "CB", 
+                         ifelse(Lead.Segment.College.Board == "", "NRCCUA", "Both"))) %>% 
+  group_by(Geo, Vendor) %>% 
+  summarise(Leads = n())
+
+
+
+# Don't forget to change the date!
+# Don't forget to change the date!
+# Don't forget to change the date!
+
+write.csv(trythis_JR,"C:/Users/christine.iyer/Box/Search/FY20_Search/FY20_Combined_Search_Feb_March/Senior_Conversions/Conversions_6-09-20_DeDuped", row.names = F)
+```
+
+```{r}
+trythisGroup_JR <- trythis_JR %>% group_by(Geo, Vendor, TargetX_SRMb__Status__c) %>% summarise(n = n()) %>% spread(TargetX_SRMb__Status__c,n) 
+trythisGroup_JR$Applicant[is.na(trythisGroup_JR$Applicant)] <- 0
+trythisGroup_JR <- trythisGroup_JR %>% mutate(Inquiry = sum(Applicant) + sum(Inquiry)) %>% select(Geo, Vendor, Inquiry, Applicant)
+trythisGroup_JR <- trythisGroup_JR[c(1:6),]
+JRConversion_JR <- left_join(LeadsUploaded_JR,trythisGroup_JR %>% group_by(Geo, Vendor) %>% summarise(Inquiries = sum(Inquiry), Applicants = sum(Applicant)))
+JRConversion_JR$Inquiries[is.na(JRConversion_JR$Inquiries)] <- 0
+JRConversion_JR$Applicants[is.na(JRConversion_JR$Applicants)] <- 0
+kable(JRConversion_JR %>% mutate(Inquiry_Yield = 
+          paste0(round(Inquiries/Leads * 100,2), "%"),
+         App_Yield = 
+          paste0(round(Applicants/Leads * 100,2), "%")))
+```
+
+
+__Junior__
+
+# April
+
+__Sophomores__
+
+__Junior__
+
+# June (Cappex)
+
+__Sophomores__
+
+__Junior__
+
+
+
+
+
+
+Rmarkdown is great `r citep(citation("knitr"))`. 
+
+You can write all your R code in chunks here and the output will appear in the final document. For example:
+
+```{r test, echo=FALSE, cache=FALSE}
+cat("Hello world!")
+```
+
+# 
+You can import references from a BibTeX file and cite any of them like these: `citep(refs["Xie_2013"])`. Or cite by doi, e.g. `r citet("10.1098/rspb.2013.1372")`, thanks to `knitcitations` package `r citep(citation("knitcitations"))`. 
+
+You can even specifiy the desired format for your bibliography by including a style file ("bibliostyle.csl"). See [Rstudio website](http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html) for more help. You can grab many different bibliography styles here: http://citationstyles.org/.
+
+There is a chunk in the end to provide your session info at the end of the document (useful for reproducibility). Set eval=FALSE if you don't want to include that info in your document.
+
+
+```{r sessionInfo, cache=FALSE, echo=FALSE, eval=FALSE}
+devtools::sessionInfo()
+```
+
+
+## References
+
+```{r generate_references, cache=FALSE, include=FALSE, results='hide'}
+write.bibtex(file="references.bib", 
+             append=file.exists("references.bib"))
+
+```
