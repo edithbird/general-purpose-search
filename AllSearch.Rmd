@@ -323,7 +323,7 @@ kable(SRConversion %>% mutate(Inquiry_Yield =
 __Juniors and Sophomores__
 
 
-```{r use this}
+```{r}
 my_soql <- sprintf("SELECT Id,
                            CreatedDate,
                            Email, 
