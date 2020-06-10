@@ -32,7 +32,7 @@ my_soql <- sprintf("SELECT Id,
                            LastName,
                            TargetX_SRMb__Status__c, TargetX_SRMb__Student_Type__c,
                            TargetX_SRMb__Anticipated_Start_Term__c,
-                           TargetX_SRMb__Anticipated_Start_Term_Year__c, 
+                           TargetX_SRMb__Anticipated_Start_Term_Year__c,
                            TargetX_SRMb__Anticipated_Start_Year__c,
                            App_Application_Date__c,  
                            TargetX_SRMb__Gender__c,  
@@ -46,11 +46,18 @@ my_soql <- sprintf("SELECT Id,
                            
                     FROM Contact 
                     WHERE DAY_ONLY(CreatedDate) > 2020-02-25 
-                    AND DAY_ONLY(CreatedDate) < 2020-03-03 
+                    AND DAY_ONLY(CreatedDate) < 2020-03-13 
                     AND TargetX_SRMb__Status__c != 'Lead' 
                     AND (Lead_Segment_College_Board__c != ' ' 
                     OR 	Lead_Segment_NRCCUA__c  != ' ') 
-                    AND TargetX_SRMb__Anticipated_Start_Year__c = 2020")
+                    AND TargetX_SRMb__Anticipated_Start_Year__c != 2020")
 
 queried_records <- sf_query(my_soql)
-write.csv(queried_records, "C:/Users/christine.iyer/Box/GeneralPurposeSearch/SF_Requests/FYJanSR.csv", row.names = F)
+
+queriedRecords_JUNIOR <- queried_records %>% filter(TargetX_SRMb__Anticipated_Start_Year__c == 2021)
+
+queriedRecords_SOPHOMORE <- queried_records %>% filter(TargetX_SRMb__Anticipated_Start_Year__c > 2021)
+
+queriedRecords_SOPHOMORE %>% group_by(TargetX_SRMb__Anticipated_Start_Year__c) %>% summarise(n = n())
+write.csv(queriedRecords_JUNIOR, "C:/Users/christine.iyer/Box/GeneralPurposeSearch/SF_Requests/queriedRecords_JUNIOR.csv", row.names = F)
+write.csv(queriedRecords_SOPHOMORE, "C:/Users/christine.iyer/Box/GeneralPurposeSearch/SF_Requests/queriedRecords_SOPHOMORE", row.names = F)
