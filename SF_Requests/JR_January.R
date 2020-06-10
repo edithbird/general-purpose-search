@@ -60,4 +60,4 @@ queriedRecords_SOPHOMORE <- queried_records %>% filter(TargetX_SRMb__Anticipated
 
 queriedRecords_SOPHOMORE %>% group_by(TargetX_SRMb__Anticipated_Start_Year__c) %>% summarise(n = n())
 write.csv(queriedRecords_JUNIOR, "C:/Users/christine.iyer/Box/GeneralPurposeSearch/SF_Requests/queriedRecords_JUNIOR.csv", row.names = F)
-write.csv(queriedRecords_SOPHOMORE, "C:/Users/christine.iyer/Box/GeneralPurposeSearch/SF_Requests/queriedRecords_SOPHOMORE", row.names = F)
+write.csv(queriedRecords_SOPHOMORE, "C:/Users/christine.iyer/Box/GeneralPurposeSearch/SF_Requests/queriedRecords_SOPHOMORE.csv", row.names = F)
