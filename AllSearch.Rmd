@@ -90,74 +90,15 @@ if (file.exists("refs2import.bib"))
 
 
 
-
-
-
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-username <- "christine.iyer@maine.edu"
-password <- "1Edithandoliver"
-securityToken <- "iFhpXgaXnuP3L5PQr69Zw2yOy"
-instanceURL <- "https://login.salesforce.com/"
-apiVersion <- "44.0"
-
-#auth <- sf_auth(username = username, password = password, security_token = securityToken,
-  #login_url = getOption("https://login.salesforce.com/"))
-
-
-
-session <- sf_auth(username, password, securityToken, instanceURL, apiVersion)
-```
-
-```{r echo=FALSE, message=FALSE, warning=FALSE }
-#sf_auth()
-```
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-
-username <- "christine.iyer@maine.edu"
-password <- "1EdithandoliveriFhpXgaXnuP3L5PQr69Zw2yOy"
-#securityToken <- ""
-instanceURL <- "https://na24.salesforce.com/"
-apiVersion <- "44.0"
-
-
-
-
-
-session <- rforcecom.login(username, password, instanceURL,apiVersion  ) 
-```
-
 # November 2019 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-my_soql <- sprintf("SELECT Id,
-                           CreatedDate,
-                           Email, 
-                           FirstName, 
-                           LastName,
-                           TargetX_SRMb__Status__c, TargetX_SRMb__Student_Type__c,
-                           TargetX_SRMb__Anticipated_Start_Term__c,
-                           TargetX_SRMb__Anticipated_Start_Term_Year__c, 
-                           App_Application_Date__c,  
-                           TargetX_SRMb__Gender__c,  
-                           TargetX_SRMb__Last_Data_Input_Source__c,                                                                Initial_Source_Date__c, 
-                           Initial_Referral_Source__c, 
-                           Recruiting_Category__c,
-                           Ref__c, 
-                           Primary_State_Code__c
-                           
-                    FROM Contact 
-                    WHERE DAY_ONLY(CreatedDate) > 2019-12-01 AND DAY_ONLY(CreatedDate) < 2019-12-06 AND TargetX_SRMb__Status__c != 'Lead' 
-                    AND Recruiting_Category__c != ' '")
-
-queried_records <- sf_query(my_soql)
-```
 
 
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+queried_records <- read.csv("C:/Users/christine.iyer/Box/GeneralPurposeSearch/SF_Requests/FYNovember.csv", header = T, stringsAsFactors = F)
+
 LeadsUploaded <- read.csv("file:///C:/Users/christine.iyer/Desktop/Fall19Leads/Fall2019LeadsafterUploadAndDeDuped.csv", header = T, stringsAsFactors = F)
 ```
 
@@ -172,7 +113,7 @@ trythis <- trythis %>% mutate(DateCollected = Sys.Date())
 #trythis
 # Don't forget to change the data!
 
-write.csv(trythis, "file:///C:/Users/christine.iyer/Box/Search/FY20_Search/FY20_November_Search/Conversions Fall 2020/Conversion_06-09-20_DeDuped.csv")
+write.csv(trythis, "file:///C:/Users/christine.iyer/Box/Search/FY20_Search/FY20_November_Search/Conversions Fall 2020/Conversion_06-10-20_DeDuped.csv")
 ```
 
 ### Conversion Summary as of `r Sys.Date()`
@@ -251,42 +192,20 @@ kable(nwew %>% filter(Geo == "Out-of_State" & Class == "Junior") %>%
 ```
 
 
-# February
 
-2 purchases, 2 weeks apart. 
 
-__Senior__
+ 
+
+
+#January Senior
+
 
 ```{r}
-my_soql <- sprintf("SELECT Id,
-                           CreatedDate,
-                           Email, 
-                           FirstName, 
-                           LastName,
-                           TargetX_SRMb__Status__c, TargetX_SRMb__Student_Type__c,
-                           TargetX_SRMb__Anticipated_Start_Term__c,
-                           TargetX_SRMb__Anticipated_Start_Term_Year__c, 
-                           App_Application_Date__c,  
-                           TargetX_SRMb__Gender__c,  
-                           TargetX_SRMb__Last_Data_Input_Source__c,                                                                Initial_Source_Date__c, 
-                           Initial_Referral_Source__c, 
-                           Recruiting_Category__c,
-                           Ref__c, 
-                           Primary_State_Code__c, 
-                           Lead_Segment_College_Board__c, Lead_Segment_NRCCUA__c
-                           
-                           
-                    FROM Contact 
-                    WHERE DAY_ONLY(CreatedDate) > 2020-02-25 
-                    AND DAY_ONLY(CreatedDate) < 2020-03-03 
-                    AND TargetX_SRMb__Status__c != 'Lead' 
-                    AND (Lead_Segment_College_Board__c != ' ' 
-                    OR 	Lead_Segment_NRCCUA__c  != ' ') 
-                    AND TargetX_SRMb__Anticipated_Start_Year__c = 2020")
+library(dplyr)
+queried_records_Jan_SR <- read.csv("C:/Users/christine.iyer/Box/GeneralPurposeSearch/SF_Requests/FYJanSR.csv", header = T, stringsAsFactors = F)
 
-queried_records <- sf_query(my_soql)
-queried_records <- queried_records %>%
-  mutate(Geo = ifelse(Primary_State_Code__c == "ME", "In-State", "Out-of-State"))
+queried_records_Jan_SR <- queried_records_Jan_SR %>%
+  mutate(Geo = ifelse(Primary_State_Code__c == "ME", "In-State", "Out-of-State")) %>% filter(TargetX_SRMb__Anticipated_Start_Year__c == 2020)
 
 LeadsUploaded <- read.csv("C:/Users/christine.iyer/Box/Search/FY20_Search/FY20_January_Search/FA20_Senior/FA20_Search_Jan2020_SR.csv", header = T, stringsAsFactors = F)
 Leads <- LeadsUploaded %>% 
@@ -295,7 +214,7 @@ Leads <- LeadsUploaded %>%
                          ifelse(Lead.Segment.College.Board == "", "NRCCUA", "Both"))) %>% 
   group_by(Geo, Vendor) %>% 
   summarise(Leads = n())
-trythis <- merge(LeadsUploaded, queried_records, by = "Email" )
+trythis <- merge(LeadsUploaded, queried_records_Jan_SR, by = "Email" )
 trythis <- trythis %>% mutate(DateCollected = Sys.Date(), 
                               Vendor = ifelse(Lead.Segment.NRCCUA == "", "CB", 
                          ifelse(Lead.Segment.College.Board == "", "NRCCUA", "Both")))
@@ -304,7 +223,7 @@ trythis <- trythis %>% mutate(DateCollected = Sys.Date(),
 # Don't forget to change the date!
 # Don't forget to change the date!
 
-write.csv(trythis,"C:/Users/christine.iyer/Box/Search/FY20_Search/FY20_Combined_Search_Feb_March/Senior_Conversions/Conversions_6-09-20_DeDuped", row.names = F)
+write.csv(trythis,"C:/Users/christine.iyer/Box/Search/FY20_Search/FY20_Combined_Search_Feb_March/Senior_Conversions/Conversions_6-10-20_DeDuped", row.names = F)
 ```
 
 ```{r}
@@ -320,41 +239,18 @@ kable(SRConversion %>% mutate(Inquiry_Yield =
           paste0(round(Applicants/Leads * 100,2), "%")))
 ```
 
-__Juniors and Sophomores__
 
+# January Juniors 
 
 ```{r}
-my_soql <- sprintf("SELECT Id,
-                           CreatedDate,
-                           Email, 
-                           FirstName, 
-                           LastName,
-                           TargetX_SRMb__Status__c, TargetX_SRMb__Student_Type__c,
-                           TargetX_SRMb__Anticipated_Start_Term__c,
-                           TargetX_SRMb__Anticipated_Start_Term_Year__c, 
-                           App_Application_Date__c,  
-                           TargetX_SRMb__Gender__c,  
-                           TargetX_SRMb__Last_Data_Input_Source__c,                                                                Initial_Source_Date__c, 
-                           Initial_Referral_Source__c, 
-                           Recruiting_Category__c,
-                           Ref__c, 
-                           Primary_State_Code__c, 
-                           Lead_Segment_College_Board__c, Lead_Segment_NRCCUA__c
-                           
-                           
-                    FROM Contact 
-                    WHERE DAY_ONLY(CreatedDate) > 2020-02-25 
-                    AND DAY_ONLY(CreatedDate) < 2020-03-13 
-                    AND TargetX_SRMb__Status__c != 'Lead' 
-                    AND (Lead_Segment_College_Board__c != ' ' 
-                    OR 	Lead_Segment_NRCCUA__c  != ' ') 
-                    AND TargetX_SRMb__Anticipated_Start_Year__c != 2020")
+queried_records_JR <- read.csv("C:/Users/christine.iyer/Box/GeneralPurposeSearch/SF_Requests/queriedRecords_JUNIOR.csv", header = T, stringsAsFactors = F)
 
-queried_records <- sf_query(my_soql)
 queried_records_JR <- queried_records %>%
-  mutate(Geo = ifelse(Primary_State_Code__c == "ME", "In-State", "Out-of-State"))
+  mutate(Geo = ifelse(Primary_State_Code__c == "ME", "In-State", "Out-of-State")) 
 
 LeadsUploaded_JR <- read.csv("C:/Users/christine.iyer/Box/Search/FY20_Search/FY20_Combined_Search_Feb_March/FY20_Feb_Search_Upload_DeDuped.csv", header = T, stringsAsFactors = F)
+
+LeadsUploaded_JR <- LeadsUploaded_JR %>% filter(Anticipated.Start.Year == 2021)
 
 trythis_JR <- merge(LeadsUploaded_JR, queried_records_JR, by = "Email" )
 
@@ -372,15 +268,6 @@ LeadsUploaded_JR <- LeadsUploaded_JR %>%
   summarise(Leads = n())
 
 
-
-# Don't forget to change the date!
-# Don't forget to change the date!
-# Don't forget to change the date!
-
-write.csv(trythis_JR,"C:/Users/christine.iyer/Box/Search/FY20_Search/FY20_Combined_Search_Feb_March/Senior_Conversions/Conversions_6-09-20_DeDuped", row.names = F)
-```
-
-```{r}
 trythisGroup_JR <- trythis_JR %>% group_by(Geo, Vendor, TargetX_SRMb__Status__c) %>% summarise(n = n()) %>% spread(TargetX_SRMb__Status__c,n) 
 trythisGroup_JR$Applicant[is.na(trythisGroup_JR$Applicant)] <- 0
 trythisGroup_JR <- trythisGroup_JR %>% mutate(Inquiry = sum(Applicant) + sum(Inquiry)) %>% select(Geo, Vendor, Inquiry, Applicant)
@@ -395,15 +282,141 @@ kable(JRConversion_JR %>% mutate(Inquiry_Yield =
 ```
 
 
-__Junior__
+# January Sophomores
 
-# April
 
-__Sophomores__
+
+
+```{r}
+
+queried_records_PH <- read.csv("C:/Users/christine.iyer/Box/GeneralPurposeSearch/SF_Requests/queriedRecords_SOPHOMORE.csv", header = T, stringsAsFactors = F)
+
+
+
+queried_records_PH <- queried_records_PH %>%
+  mutate(Geo = ifelse(Primary_State_Code__c == "ME", "In-State", "Out-of-State")) 
+
+LeadsUploaded_PH <- read.csv("C:/Users/christine.iyer/Box/Search/FY20_Search/FY20_Combined_Search_Feb_March/FY20_Feb_Search_Upload_DeDuped.csv", header = T, stringsAsFactors = F)
+LeadsUploaded_PH <- LeadsUploaded_PH %>% filter(Anticipated.Start.Year >2021)
+
+trythis_PH <- merge(queried_records_PH, LeadsUploaded_PH, by = "Email" )
+
+
+
+
+trythis_PH <- trythis_PH %>% mutate(DateCollected = Sys.Date(), 
+                              Vendor = ifelse(Lead.Segment.NRCCUA == "", "CB", 
+                         ifelse(Lead.Segment.College.Board == "", "NRCCUA", "Both")))
+LeadsUploaded_PH <- LeadsUploaded_PH %>% 
+  mutate(Geo = ifelse(Primary.State.Province == "Maine", "In-State", "Out-of-State"), 
+         Vendor = ifelse(Lead.Segment.NRCCUA == "", "CB", 
+                         ifelse(Lead.Segment.College.Board == "", "NRCCUA", "Both"))) %>% 
+  group_by(Geo, Vendor) %>% 
+  summarise(Leads = n())
+
+
+trythisGroup_PH <- trythis_PH %>% group_by(Geo, Vendor, TargetX_SRMb__Status__c) %>% summarise(n = n()) 
+Conversion_PH <- left_join(LeadsUploaded_PH,trythisGroup_PH %>% group_by(Geo, Vendor) %>% summarise(Inquiries = sum(n)))
+Conversion_PH$Inquiries[is.na(Conversion_PH$Inquiries)] <- 0
+# JRConversion_JR$Applicants[is.na(JRConversion_JR$Applicants)] <- 0
+kable(Conversion_PH %>% mutate(Inquiry_Yield = 
+          paste0(round(Inquiries/Leads * 100,2), "%"),
+         ))
+```
+
+# April Juniors
+
+```{r}
+
+queried_records_PH <- read.csv("C:/Users/christine.iyer/Box/GeneralPurposeSearch/SF_Requests/April_queriedRecords_JUNIOR.csv", header = T, stringsAsFactors = F)
+
+
+
+queried_records_PH <- queried_records_PH %>%
+  mutate(Geo = ifelse(Primary_State_Code__c == "ME", "In-State", "Out-of-State")) 
+
+LeadsUploaded_PH <- read.csv("C:/Users/christine.iyer/Box/Search/FY20_Search/FY20_April_Search/SF_Downloaded_Names/AprilSearchDownload.csv", header = T, stringsAsFactors = F)
+LeadsUploaded_PH <- LeadsUploaded_PH %>% filter(Anticipated.Start.Year == 2021)
+
+trythis_PH <- merge(queried_records_PH, LeadsUploaded_PH, by = "Email" )
+
+
+trythis_PH <- trythis_PH %>% mutate(DateCollected = Sys.Date(),
+                                    Vendor = ifelse(Lead.Segment.NRCCUA == "", "CB",
+                                              ifelse(Lead.Segment.College.Board == "", "NRCCUA", "Both")))
+LeadsUploaded_PH <- LeadsUploaded_PH %>% 
+  mutate(Geo = ifelse(Primary.State.Province == "Maine", "In-State", "Out-of-State"), 
+         Vendor = ifelse(Lead.Segment.NRCCUA == "", "CB", 
+                         ifelse(Lead.Segment.College.Board == "", "NRCCUA", "Both"))) %>% 
+  group_by(Geo, Vendor) %>% 
+  summarise(Leads = n())
+
+
+trythisGroup_PH <- trythis_PH %>% group_by(Geo, Vendor, TargetX_SRMb__Status__c) %>% summarise(n = n()) 
+Conversion_PH <- left_join(LeadsUploaded_PH,trythisGroup_PH %>% group_by(Geo, Vendor) %>% summarise(Inquiries = sum(n)))
+Conversion_PH$Inquiries[is.na(Conversion_PH$Inquiries)] <- 0
+# JRConversion_JR$Applicants[is.na(JRConversion_JR$Applicants)] <- 0
+kable(Conversion_PH %>% mutate(Inquiry_Yield = 
+          paste0(round(Inquiries/Leads * 100,2), "%"),
+         ))
+```
+
+# April Sophomores
+
+```{r}
+
+queried_records_PH <- read.csv("C:/Users/christine.iyer/Box/GeneralPurposeSearch/SF_Requests/April_queriedRecords_SOPHOMORE.csv", header = T, stringsAsFactors = F)
+
+
+
+queried_records_PH <- queried_records_PH %>%
+  mutate(Geo = ifelse(Primary_State_Code__c == "ME", "In-State", "Out-of-State")) 
+
+LeadsUploaded_PH <- read.csv("C:/Users/christine.iyer/Box/Search/FY20_Search/FY20_April_Search/SF_Downloaded_Names/AprilSearchDownload.csv", header = T, stringsAsFactors = F)
+LeadsUploaded_PH <- LeadsUploaded_PH %>% filter(Anticipated.Start.Year >2021)
+
+trythis_PH <- merge(queried_records_PH, LeadsUploaded_PH, by = "Email" )
+
+
+trythis_PH <- trythis_PH %>% mutate(DateCollected = Sys.Date(),
+                                    Vendor = ifelse(Lead.Segment.NRCCUA == "", "CB",
+                                              ifelse(Lead.Segment.College.Board == "", "NRCCUA", "Both")))
+LeadsUploaded_PH <- LeadsUploaded_PH %>% 
+  mutate(Geo = ifelse(Primary.State.Province == "Maine", "In-State", "Out-of-State"), 
+         Vendor = ifelse(Lead.Segment.NRCCUA == "", "CB", 
+                         ifelse(Lead.Segment.College.Board == "", "NRCCUA", "Both"))) %>% 
+  group_by(Geo, Vendor) %>% 
+  summarise(Leads = n())
+
+
+trythisGroup_PH <- trythis_PH %>% group_by(Geo, Vendor, TargetX_SRMb__Status__c) %>% summarise(n = n()) 
+Conversion_PH <- left_join(LeadsUploaded_PH,trythisGroup_PH %>% group_by(Geo, Vendor) %>% summarise(Inquiries = sum(n)))
+Conversion_PH$Inquiries[is.na(Conversion_PH$Inquiries)] <- 0
+# JRConversion_JR$Applicants[is.na(JRConversion_JR$Applicants)] <- 0
+kable(Conversion_PH %>% mutate(Inquiry_Yield = 
+          paste0(round(Inquiries/Leads * 100,2), "%"),
+         ))
+```
+
 
 __Junior__
 
 # June (Cappex)
+
+```{r}
+CappexNames <- read.csv("C:/Users/christine.iyer/Box/Cappex Leads FY20/FY20CappexLeads.csv", header = T, stringsAsFactors = F)
+```
+
+
+```{r}
+library(dplyr)
+names(CappexNames)
+states <- c("ME", "NH", "MA", "CT")
+CappexNames %>% 
+  mutate(StateRegion = ifelse(State %in% states, "New England", "Outside NE")) %>% 
+  group_by(StateRegion,State) %>% summarise(n = n())
+```
+
 
 __Sophomores__
 

@@ -1,6 +1,7 @@
 library(salesforcer)
 library(knitr)
 library(RForcecom)
+library(dplyr)
 username <- "christine.iyer@maine.edu"
 password <- "1Edithandoliver"
 securityToken <- "iFhpXgaXnuP3L5PQr69Zw2yOy"
@@ -45,17 +46,19 @@ my_soql <- sprintf("SELECT Id,
                            
                            
                     FROM Contact 
-                    WHERE DAY_ONLY(CreatedDate) > 2020-04-21 
-                    AND DAY_ONLY(CreatedDate) < 2020-05-05 
+                    WHERE DAY_ONLY(CreatedDate) > 2020-04-27 
+                    AND DAY_ONLY(CreatedDate) < 2020-05-06 
                     AND TargetX_SRMb__Status__c != 'Lead' 
                     AND (Lead_Segment_College_Board__c != ' ' 
-                    OR 	Lead_Segment_NRCCUA__c  != ' '))
+                    OR 	Lead_Segment_NRCCUA__c  != ' ') 
+                    AND TargetX_SRMb__Anticipated_Start_Year__c != 2020")
 
-queried_records_April <- sf_query(my_soql)
+queried_records <- sf_query(my_soql)
 
-queriedRecords_JUNIOR <- queried_records_April %>% filter(TargetX_SRMb__Anticipated_Start_Year__c == 2021)
+April_queriedRecords_JUNIOR <- queried_records %>% filter(TargetX_SRMb__Anticipated_Start_Year__c == 2021)
 
-queriedRecords_SOPHOMORE <- queried_records_April %>% filter(TargetX_SRMb__Anticipated_Start_Year__c >= 2022)
+April_queriedRecords_SOPHOMORE <- queried_records %>% filter(TargetX_SRMb__Anticipated_Start_Year__c >= 2022)
 
-
-
+April_queriedRecords_SOPHOMORE %>% group_by(TargetX_SRMb__Anticipated_Start_Year__c) %>% summarise(n = n())
+write.csv(April_queriedRecords_JUNIOR, "C:/Users/christine.iyer/Box/GeneralPurposeSearch/SF_Requests/April_queriedRecords_JUNIOR.csv", row.names = F)
+write.csv(April_queriedRecords_SOPHOMORE, "C:/Users/christine.iyer/Box/GeneralPurposeSearch/SF_Requests/April_queriedRecords_SOPHOMORE.csv", row.names = F)
